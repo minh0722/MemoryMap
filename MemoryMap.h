@@ -9,6 +9,7 @@
 struct Page {
 	size_t from, to;
 	char* buffer;
+	size_t usage;
 
 	size_t getBufferSize() {
 		return to - from + 1;
@@ -23,11 +24,13 @@ public:
 	char& operator[](const size_t index);
 
 private:
-	void allocatePage(size_t page_index, std::pair<size_t,size_t>& pageRange);
-	
+	/* allocate memory for page and get file content
+	**/
+	void allocatePage(size_t page_index, std::pair<size_t, size_t>& pageRange);
+
 	size_t fileSize();
 
-	/* return page index
+	/* get index of page that contain byte at index
 	**/
 	int getPageOnIndex(size_t byteIndex);
 
@@ -39,7 +42,9 @@ private:
 	**/
 	std::pair<size_t, size_t> getPageRange(size_t byteIndex);
 
+	void sortPagesByUsage();
+
+	size_t usage[PAGE_COUNT];
 	Page m_map[PAGE_COUNT];
 	FILE* m_file;
 };
-
