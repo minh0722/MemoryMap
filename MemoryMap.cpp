@@ -23,9 +23,9 @@ MemoryMap::MemoryMap(const char* file_path) {
 MemoryMap::~MemoryMap() {
 	for (size_t i = 0; i < PAGE_COUNT; ++i) {
 		writePageToDisk(i);
+		deallocatePage(i);
 	}
 
-	deallocateAllPages();
 	fclose(m_file);
 }
 
@@ -82,7 +82,6 @@ void MemoryMap::writePageToDisk(size_t pageIndex) {
 	}
 }
 
-
 void MemoryMap::allocatePage(size_t page_index, std::pair<size_t, size_t>& pageRange) {
 	m_map[page_index].from = pageRange.first;
 	m_map[page_index].to = pageRange.second;
@@ -108,12 +107,6 @@ size_t MemoryMap::fileSize() {
 	size_t size = ftell(m_file);
 	fseek(m_file, currPosition, SEEK_SET);
 	return size;
-}
-
-void MemoryMap::deallocateAllPages() {
-	for (size_t i = 0; i < PAGE_COUNT; ++i) {
-		deallocatePage(i);
-	}
 }
 
 void MemoryMap::deallocatePage(size_t pageIndex) {
