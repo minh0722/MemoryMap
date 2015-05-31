@@ -35,7 +35,6 @@ private:
 	int getPageOnIndex(size_t byteIndex);
 
 	void writePageToDisk(size_t pageIndex);
-	void deallocateAllPages();
 	void deallocatePage(size_t pageIndex);
 
 	/* return range of a page in the file for the byte index
