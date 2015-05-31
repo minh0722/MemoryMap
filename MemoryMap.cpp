@@ -33,7 +33,7 @@ char& MemoryMap::operator[](const size_t byte_index) {
 	if (byte_index > fileSize()) {
 		throw std::out_of_range("Index out of range");
 	}
-	
+
 	int page_index = getPageOnIndex(byte_index);
 	++m_map[page_index].usage;
 
@@ -41,8 +41,6 @@ char& MemoryMap::operator[](const size_t byte_index) {
 
 	return m_map[page_index].buffer[byte_index - m_map[page_index].from];
 }
-
-
 
 
 
@@ -62,17 +60,17 @@ int MemoryMap::getPageOnIndex(size_t byteIndex) {
 		}
 	}
 
-	writePageToDisk(0);
-	deallocatePage(0);
-	allocatePage(0, getPageRange(byteIndex));
-	return 0;
+	writePageToDisk(usage[0]);
+	deallocatePage(usage[0]);
+	allocatePage(usage[0], getPageRange(byteIndex));
+	return usage[0];
 }
 
 std::pair<size_t, size_t> MemoryMap::getPageRange(size_t byteIndex) {
 	size_t file_size = fileSize();
 
 	size_t from = (byteIndex / PAGE_SIZE) * PAGE_SIZE;
-	size_t to = file_size > from + PAGE_SIZE - 1 ? from + PAGE_SIZE - 1 : file_size  - 1;
+	size_t to = file_size > from + PAGE_SIZE - 1 ? from + PAGE_SIZE - 1 : file_size - 1;
 
 	return std::make_pair(from, to);
 }
@@ -96,8 +94,8 @@ void MemoryMap::allocatePage(size_t page_index, std::pair<size_t, size_t>& pageR
 
 void MemoryMap::sortPagesByUsage() {
 	std::sort(
-		usage, 
-		usage + PAGE_COUNT, 
+		usage,
+		usage + PAGE_COUNT,
 		[this](const int& l, const int& r){
 			return this->m_map[l].usage < this->m_map[r].usage;
 		}
