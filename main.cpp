@@ -1,29 +1,27 @@
 #include <iostream>
 #include "MemoryMap.h"
 
-int main() {
+#include <cstdlib>
+#include <chrono>
 
-	MemoryMap m("sample.txt");
+using namespace std;
+using namespace std::chrono;
 
-	m[0] = 'q';
+int main(int argc, char *argv[]) {
 
-	m[200] = 'g';
-	m[233] = 'h';
-	m[266] = 'r';
-	m[212] = 'l';
-	m[256] = 'e';
+	MemoryMap m(argv[1]);
 
-	m[100] = 't';
-	m[133] = 'e';
-	m[122] = 'g';
+	auto t1 = high_resolution_clock::now();
+	for (size_t i = 0; i < m.getFileSize(); ++i) {
+		m[i] = *argv[2];
+	}
 
-	m[343] = 'b';
-	m[342] = 'm';
-	m[355] = 'y';
-	m[347] = 'g';
+	auto t2 = high_resolution_clock::now();
 
+	auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+	cout << "miliseconds: " << duration << endl;
 
-
-
+	//cin.get();
+	//86,621,800
 	return 0;
 }
