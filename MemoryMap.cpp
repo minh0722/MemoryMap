@@ -1,6 +1,7 @@
 #include "MemoryMap.h"
 #include <stdexcept>
 #include <algorithm>
+#include <iostream>
 
 
 MemoryMap::MemoryMap(const char* file_path) {
@@ -17,6 +18,7 @@ MemoryMap::MemoryMap(const char* file_path) {
 		usage[i] = i;
 	}
 
+	file_size = fileSize();
 }
 
 
@@ -30,14 +32,16 @@ MemoryMap::~MemoryMap() {
 }
 
 char& MemoryMap::operator[](const size_t byte_index) {
-	if (byte_index > fileSize()) {
+	if (byte_index > file_size) {
 		throw std::out_of_range("Index out of range");
 	}
 
 	int page_index = getPageOnIndex(byte_index);
 	++m_map[page_index].usage;
 
-	sortPagesByUsage();
+	if (page_index != PAGE_COUNT - 1) {
+		sortPagesByUsage();
+	}
 
 	return m_map[page_index].buffer[byte_index - m_map[page_index].from];
 }
@@ -61,14 +65,11 @@ int MemoryMap::getPageOnIndex(size_t byteIndex) {
 	}
 
 	writePageToDisk(usage[0]);
-	deallocatePage(usage[0]);
 	allocatePage(usage[0], getPageRange(byteIndex));
 	return usage[0];
 }
 
 std::pair<size_t, size_t> MemoryMap::getPageRange(size_t byteIndex) {
-	size_t file_size = fileSize();
-
 	size_t from = (byteIndex / PAGE_SIZE) * PAGE_SIZE;
 	size_t to = file_size > from + PAGE_SIZE - 1 ? from + PAGE_SIZE - 1 : file_size - 1;
 
@@ -86,7 +87,9 @@ void MemoryMap::allocatePage(size_t page_index, std::pair<size_t, size_t>& pageR
 	m_map[page_index].from = pageRange.first;
 	m_map[page_index].to = pageRange.second;
 
-	m_map[page_index].buffer = new char[m_map[page_index].getBufferSize()];
+	if (!m_map[page_index].buffer) {
+		m_map[page_index].buffer = new char[m_map[page_index].getBufferSize()];
+	}
 	fseek(m_file, pageRange.first, SEEK_SET);
 	fread(m_map[page_index].buffer, sizeof(char), m_map[page_index].getBufferSize(), m_file);
 }
@@ -107,6 +110,10 @@ size_t MemoryMap::fileSize() {
 	size_t size = ftell(m_file);
 	fseek(m_file, currPosition, SEEK_SET);
 	return size;
+}
+
+size_t MemoryMap::getFileSize() {
+	return file_size;
 }
 
 void MemoryMap::deallocatePage(size_t pageIndex) {
