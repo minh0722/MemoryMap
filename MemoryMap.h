@@ -11,7 +11,8 @@ struct Page {
 	char* buffer;
 	size_t usage;
 
-	size_t getBufferSize() {
+	size_t getBufferSize()
+	{
 		return to - from + 1;
 	}
 };
